@@ -12,7 +12,7 @@ def inventory_entry(productID: int, quantity: int,
                     db: Session = Depends(get_db),
                     current_user= Depends(get_current_user)):
     
-    product = db.query(Product).filter(product.id == productID).first()
+    product = db.query(Product).filter(Product.id == productID).first()
     if not product:
         raise HTTPException(404, "product no found")
     
@@ -27,21 +27,21 @@ def inventory_entry(productID: int, quantity: int,
         "message": "Stock increased successfully",
         "movement": {
             "id": movement.id,
-            "product_id": movement.product_id,
+            "product_id": movement.productID,
             "type": movement.type,
             "quantity": movement.quantity,
-            "stock_before": movement.stock_before,
-            "stock_after": movement.stock_after,
+            "stock_before": movement.stockBefore,
+            "stock_after": movement.stockAfter,
             "date": movement.date
         }
 
     }
 @router.post("/ajuste")
-def inventory_adjust(product_id: int, new_stock: int,
+def inventory_adjust(productID: int, new_stock: int,
                      db: Session = Depends(get_db),
                      current_user=Depends(get_current_user)):
 
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).filter(Product.id == productID).first()
     if not product:
         raise HTTPException(404, "Product not found")
 
@@ -57,22 +57,22 @@ def inventory_adjust(product_id: int, new_stock: int,
         "message": "Stock adjusted successfully",
         "movement": {
             "id": movement.id,
-            "product_id": movement.product_id,
+            "product_id": movement.productID,
             "type": movement.type,
             "quantity": movement.quantity,
-            "stock_before": movement.stock_before,
-            "stock_after": movement.stock_after,
+            "stock_before": movement.stockBefore,
+            "stock_after": movement.stockAfter,
             "date": movement.date
         }
     }
 
 @router.get("/movimientos/{product_id}")
-def get_movements(product_id: int,
+def get_movements(productID: int,
                   db: Session = Depends(get_db),
                   current_user=Depends(get_current_user)):
 
     movements = db.query(InventoryMovement).filter(
-        InventoryMovement.product_id == product_id
+        InventoryMovement.productID == productID
     ).order_by(InventoryMovement.date.desc()).all()
 
     return movements
