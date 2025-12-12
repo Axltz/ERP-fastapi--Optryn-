@@ -20,7 +20,7 @@ class Product(Base):
     name = Column(String, nullable=False)
     price = Column(Float, nullable=False)
     stockAvaible = Column(Integer, nullable=False, default=0)
-    stockMinimun = Column(Integer, nullable=False, default=0)
+    stockMinimum = Column(Integer, nullable=False, default=0)
 
 class InventoryMovement(Base):
     __tablename__ = "inventory_movements"
@@ -30,7 +30,9 @@ class InventoryMovement(Base):
     type = Column(String, nullable=False)
     quantity = Column(Integer, nullable=False)
     stockBefore = Column(Integer, nullable=False)
+    stockAfter = Column(Integer, nullable=False)
     date = Column(DateTime, default=datetime.utcnow)
+
 
     userID = Column(Integer, ForeignKey("users.id"))
 
