@@ -1,30 +1,27 @@
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException
 from app.models import InventoryMovement
-from app.database import get_db
 
 def register_movement(db, *, product, user, quantity, movement_type):
-    before = product.stockAvailable 
+    stock_before = product.stockAvailable
 
     if movement_type == "entrada":
         product.stockAvailable += quantity
-    elif movement_type == "sell":
+    elif movement_type == "salida":
         if product.stockAvailable < quantity:
-            raise HTTPException(400, "Insufficient Stock")
+            raise HTTPException(400, "Insufficient stock")
         product.stockAvailable -= quantity
     elif movement_type == "ajuste":
-        if quantity < 0:
-            raise HTTPException(400, "Stock cannot be negative value")
         product.stockAvailable = quantity
 
-    after = product.stockAvailable
+    stock_after = product.stockAvailable
 
     movement = InventoryMovement(
         productID=product.id,
         userID=user.id,
         type=movement_type,
         quantity=quantity,
-        stockBefore=before,
-        stockAfter=after
+        stockBefore=stock_before,
+        stockAfter=stock_after
     )
 
     db.add(movement)

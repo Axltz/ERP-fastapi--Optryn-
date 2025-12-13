@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from datetime import datetime
 from app.database import get_db
 from app.models import Product, InventoryMovement
 from app.services.auth_service import get_current_user
@@ -10,12 +11,12 @@ router = APIRouter(prefix="/inventory", tags=["Inventory"])
 @router.post("/entrada")
 def inventory_entry(productID: int, quantity: int,
                     db: Session = Depends(get_db),
-                    current_user= Depends(get_current_user)):
-    
+                    current_user=Depends(get_current_user)):
+
     product = db.query(Product).filter(Product.id == productID).first()
     if not product:
-        raise HTTPException(404, "product no found")
-    
+        raise HTTPException(404, "Product not found")
+
     movement = register_movement(
         db,
         product=product,
@@ -23,6 +24,7 @@ def inventory_entry(productID: int, quantity: int,
         quantity=quantity,
         movement_type="entrada"
     )
+
     return {
         "message": "Stock increased successfully",
         "movement": {
@@ -34,12 +36,11 @@ def inventory_entry(productID: int, quantity: int,
             "stock_after": movement.stockAfter,
             "date": movement.date
         }
-
     }
 
 
-@router.post("/sell")
-def inventory_sale(productID: int, quantity: int,
+@router.post("/salida")
+def inventory_exit(productID: int, quantity: int,
                    db: Session = Depends(get_db),
                    current_user=Depends(get_current_user)):
 
@@ -52,7 +53,7 @@ def inventory_sale(productID: int, quantity: int,
         product=product,
         user=current_user,
         quantity=quantity,
-        movement_type="sell"
+        movement_type="salida"
     )
 
     return {
@@ -67,6 +68,7 @@ def inventory_sale(productID: int, quantity: int,
             "date": movement.date
         }
     }
+
 
 @router.post("/ajuste")
 def inventory_adjust(productID: int, new_stock: int,
@@ -98,15 +100,17 @@ def inventory_adjust(productID: int, new_stock: int,
         }
     }
 
-@router.get("/movimientos/{productID}")
-def get_movements(productID: int,
-                  movement_type: str = None,
-                  start_date: str = None,
-                  end_date: str = None,
-                  db: Session = Depends(get_db),
-                  current_user=Depends(get_current_user)):
 
-    query = db.query(InventoryMovement).filter(InventoryMovement.productID == productID)
+@router.get("/movimientos")
+def get_all_movements(
+    movement_type: str | None = Query(None, description="Filter by type: entrada, salida, ajuste"),
+    start_date: datetime | None = Query(None, description="Start date in ISO format"),
+    end_date: datetime | None = Query(None, description="End date in ISO format"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+
+    query = db.query(InventoryMovement)
 
     if movement_type:
         query = query.filter(InventoryMovement.type == movement_type)

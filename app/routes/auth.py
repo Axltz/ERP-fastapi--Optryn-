@@ -22,7 +22,8 @@ def register_user(data: UserRegister, db: Session = Depends(get_db)):
 
     new_user = User(
         username=data.username,
-        password=hash_password(data.password)
+        password=hash_password(data.password),
+        role=role_to_assing
     )
     db.add(new_user)
     db.commit()
@@ -38,6 +39,10 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
 
     token = create_access_token({"sub": user.username})
     return {"access_token": token, "token_type": "bearer"}
+
+@router.get("/me", response_model=UserResponse)
+def read_current_user(current_user: User = Depends(get_current_user)):
+    return current_user
 
 
 @router.put("/change-password")
