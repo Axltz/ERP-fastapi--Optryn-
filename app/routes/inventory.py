@@ -36,6 +36,38 @@ def inventory_entry(productID: int, quantity: int,
         }
 
     }
+
+
+@router.post("/sell")
+def inventory_sale(productID: int, quantity: int,
+                   db: Session = Depends(get_db),
+                   current_user=Depends(get_current_user)):
+
+    product = db.query(Product).filter(Product.id == productID).first()
+    if not product:
+        raise HTTPException(404, "Product not found")
+
+    movement = register_movement(
+        db,
+        product=product,
+        user=current_user,
+        quantity=quantity,
+        movement_type="sell"
+    )
+
+    return {
+        "message": "Stock decreased successfully",
+        "movement": {
+            "id": movement.id,
+            "product_id": movement.productID,
+            "type": movement.type,
+            "quantity": movement.quantity,
+            "stock_before": movement.stockBefore,
+            "stock_after": movement.stockAfter,
+            "date": movement.date
+        }
+    }
+
 @router.post("/ajuste")
 def inventory_adjust(productID: int, new_stock: int,
                      db: Session = Depends(get_db),
@@ -66,13 +98,22 @@ def inventory_adjust(productID: int, new_stock: int,
         }
     }
 
-@router.get("/movimientos/{product_id}")
+@router.get("/movimientos/{productID}")
 def get_movements(productID: int,
+                  movement_type: str = None,
+                  start_date: str = None,
+                  end_date: str = None,
                   db: Session = Depends(get_db),
                   current_user=Depends(get_current_user)):
 
-    movements = db.query(InventoryMovement).filter(
-        InventoryMovement.productID == productID
-    ).order_by(InventoryMovement.date.desc()).all()
+    query = db.query(InventoryMovement).filter(InventoryMovement.productID == productID)
 
+    if movement_type:
+        query = query.filter(InventoryMovement.type == movement_type)
+    if start_date:
+        query = query.filter(InventoryMovement.date >= start_date)
+    if end_date:
+        query = query.filter(InventoryMovement.date <= end_date)
+
+    movements = query.order_by(InventoryMovement.date.desc()).all()
     return movements
