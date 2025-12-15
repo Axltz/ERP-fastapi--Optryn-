@@ -26,7 +26,7 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
     user = db.query(User).filter(User.username == username).first()
     if not user:
         return None
-    if not verify_password(password, user.password):
+    if not verify_password(password, user.hashed_password):
         return None
     return user
 
@@ -57,9 +57,16 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-def require_role(role: str) -> Callable:
-    def _checker(current_user: User = Depends(get_current_user)):
+
+def require_role(role: str):
+    def role_dependency(
+        current_user: User = Depends(get_current_user)
+    ) -> User:
         if current_user.role != role:
-            raise HTTPException(status_code=403, detail="Insufficient permissions")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions"
+            )
         return current_user
-    return _checker
+
+    return role_dependency

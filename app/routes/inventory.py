@@ -1,123 +1,86 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import datetime
-from app.database import get_db
-from app.models import Product, InventoryMovement
-from app.services.auth_service import get_current_user
-from app.services.inventory_service import register_movement
 
-router = APIRouter(prefix="/inventory", tags=["Inventory"])
+from app.database import get_db
+from app.models import Product, InventoryMovement, User
+from app.services.auth_service import require_role
+from app.services.inventory_service import register_movement
+from app.schemas.inventory import (
+    InventoryEntry,
+    InventoryExit,
+    InventoryAdjust,
+)
+
+router = APIRouter(tags=["Inventory"])
+
 
 @router.post("/entrada")
-def inventory_entry(productID: int, quantity: int,
-                    db: Session = Depends(get_db),
-                    current_user=Depends(get_current_user)):
-
-    product = db.query(Product).filter(Product.id == productID).first()
+def inventory_entry(
+    data: InventoryEntry,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    product = db.query(Product).filter(Product.id == data.productID).first()
     if not product:
-        raise HTTPException(404, "Product not found")
+        raise HTTPException(status_code=404, detail="Product not found")
 
     movement = register_movement(
-        db,
+        db=db,
         product=product,
         user=current_user,
-        quantity=quantity,
-        movement_type="entrada"
+        quantity=data.quantity,
+        movement_type="entrada",
     )
 
-    return {
-        "message": "Stock increased successfully",
-        "movement": {
-            "id": movement.id,
-            "product_id": movement.productID,
-            "type": movement.type,
-            "quantity": movement.quantity,
-            "stock_before": movement.stockBefore,
-            "stock_after": movement.stockAfter,
-            "date": movement.date
-        }
-    }
+    return {"message": "Stock increased successfully"}
 
 
 @router.post("/salida")
-def inventory_exit(productID: int, quantity: int,
-                   db: Session = Depends(get_db),
-                   current_user=Depends(get_current_user)):
-
-    product = db.query(Product).filter(Product.id == productID).first()
+def inventory_exit(
+    data: InventoryExit,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    product = db.query(Product).filter(Product.id == data.productID).first()
     if not product:
-        raise HTTPException(404, "Product not found")
+        raise HTTPException(status_code=404, detail="Product not found")
 
     movement = register_movement(
-        db,
+        db=db,
         product=product,
         user=current_user,
-        quantity=quantity,
-        movement_type="salida"
+        quantity=data.quantity,
+        movement_type="salida",
     )
 
-    return {
-        "message": "Stock decreased successfully",
-        "movement": {
-            "id": movement.id,
-            "product_id": movement.productID,
-            "type": movement.type,
-            "quantity": movement.quantity,
-            "stock_before": movement.stockBefore,
-            "stock_after": movement.stockAfter,
-            "date": movement.date
-        }
-    }
+    return {"message": "Stock decreased successfully"}
 
 
 @router.post("/ajuste")
-def inventory_adjust(productID: int, new_stock: int,
-                     db: Session = Depends(get_db),
-                     current_user=Depends(get_current_user)):
-
-    product = db.query(Product).filter(Product.id == productID).first()
+def inventory_adjust(
+    data: InventoryAdjust,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    product = db.query(Product).filter(Product.id == data.productID).first()
     if not product:
-        raise HTTPException(404, "Product not found")
+        raise HTTPException(status_code=404, detail="Product not found")
 
     movement = register_movement(
-        db,
+        db=db,
         product=product,
         user=current_user,
-        quantity=new_stock,
-        movement_type="ajuste"
+        quantity=data.new_stock,
+        movement_type="ajuste",
     )
 
-    return {
-        "message": "Stock adjusted successfully",
-        "movement": {
-            "id": movement.id,
-            "product_id": movement.productID,
-            "type": movement.type,
-            "quantity": movement.quantity,
-            "stock_before": movement.stockBefore,
-            "stock_after": movement.stockAfter,
-            "date": movement.date
-        }
-    }
+    return {"message": "Stock adjusted successfully"}
 
 
 @router.get("/movimientos")
 def get_all_movements(
-    movement_type: str | None = Query(None, description="Filter by type: entrada, salida, ajuste"),
-    start_date: datetime | None = Query(None, description="Start date in ISO format"),
-    end_date: datetime | None = Query(None, description="End date in ISO format"),
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user: User = Depends(require_role("admin")),
 ):
-
-    query = db.query(InventoryMovement)
-
-    if movement_type:
-        query = query.filter(InventoryMovement.type == movement_type)
-    if start_date:
-        query = query.filter(InventoryMovement.date >= start_date)
-    if end_date:
-        query = query.filter(InventoryMovement.date <= end_date)
-
-    movements = query.order_by(InventoryMovement.date.desc()).all()
-    return movements
+    return db.query(InventoryMovement).all()

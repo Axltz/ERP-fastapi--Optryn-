@@ -1,5 +1,5 @@
 import datetime 
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -9,7 +9,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
-    password = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=False)
     role = Column(String, nullable=False, default="user")
 
 
@@ -31,7 +31,7 @@ class InventoryMovement(Base):
     quantity = Column(Integer, nullable=False)
     stockBefore = Column(Integer, nullable=False)
     stockAfter = Column(Integer, nullable=False)
-    date = Column(DateTime, default=datetime.utcnow)
+    date = Column(DateTime, default=datetime.now(UTC))
 
 
     userID = Column(Integer, ForeignKey("users.id"))

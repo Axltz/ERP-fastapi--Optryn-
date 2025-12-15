@@ -3,7 +3,7 @@ from app.models import Product
 from app.schemas.product import ProductCreate
 
 def create_product(db: Session, data: ProductCreate) -> Product:
-    product = Product(name=data.name, price=data.price, stockAvaible=data.stockAvaible, stockMinimum=data.stockMinimum)
+    product = Product(name=data.name, price=data.price, stockAvailable=data.stockAvailable, stockMinimum=data.stockMinimum)
     db.add(product)
     db.commit()
     db.refresh(product)
@@ -19,7 +19,7 @@ def update_product_db(db: Session, product: Product, data: ProductCreate):
     product.name = data.name
     product.price = data.price
     product.stockMinimun = data.stockMinimum
-    product.stockAvaible = data.stockAvaible
+    product.stockAvailable = data.stockAvailable
     db.commit()
     db.refresh(product)
     return product
