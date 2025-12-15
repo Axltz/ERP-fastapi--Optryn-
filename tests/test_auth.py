@@ -9,7 +9,6 @@ def test_register_user(client):
     assert response.status_code == 200
     assert response.json()["username"] == "newuser"
 
-
 def test_login_user(client):
     client.post(
         "/auth/register",
@@ -29,4 +28,6 @@ def test_login_user(client):
     )
 
     assert response.status_code == 200
-    assert "access_token" in response.json()
+    json_data = response.json()
+    assert "access_token" in json_data
+    assert json_data["token_type"] == "bearer"
