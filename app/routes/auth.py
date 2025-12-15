@@ -22,14 +22,12 @@ def register_user(data: UserRegister, db: Session = Depends(get_db)):
     if user_exists:
         raise HTTPException(status_code=400, detail="User already exists")
 
-    truncated_password = data.password[:72]
-
     any_user = db.query(User).first()
     role_to_assign = "admin" if any_user is None else "user"
 
     new_user = User(
         username=data.username,
-        hashed_password=hash_password(truncated_password),
+        hashed_password=hash_password(data.password),
         role=role_to_assign,
     )
 

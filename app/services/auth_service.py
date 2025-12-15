@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
+from passlib.context import CryptContext
 
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret_key") 
 ALGORITHM = "HS256"
@@ -17,11 +18,15 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def hash_password(password: str) -> str:
-    truncated = password[:72] 
-    return pwd_context.hash(truncated)
+    if not password:
+        raise ValueError("Password vacío")
+
+    password_bytes = password.encode("utf-8")[:72]
+    return pwd_context.hash(password_bytes)
+
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    return pwd_context.verify(plain.encode("utf-8")[:72], hashed)
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
     user = db.query(User).filter(User.username == username).first()
