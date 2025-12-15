@@ -1,124 +1,97 @@
-# Optryn API Documentation
+OPTRYN API DOCUMENTATION
 
-## Inventory Endpoints
 
-### 1. Stock Entry
-- **Endpoint:** POST `/inventory/entrada`
-- **Description:** Increases the available stock of a product.
-- **Body** (JSON):
-```json
-{
-  "productID": 1,
-  "quantity": 100
-}
-Response (JSON):
+GENERAL DESCRIPTION
 
-json
-Copiar código
-{
-  "message": "Stock increased successfully",
-  "movement": {
-    "id": 1,
-    "product_id": 1,
-    "type": "entrada",
-    "quantity": 100,
-    "stock_before": 200,
-    "stock_after": 300,
-    "date": "2025-12-12T23:24:54.025508"
-  }
-}
-2. Stock Exit (Sales)
-Endpoint: POST /inventory/salida
+This API provides backend services for inventory management.
+It enforces authentication, authorization, and business rules
+to ensure data integrity and controlled access.
 
-Description: Registers a sale and decreases the available stock.
 
-Body (JSON):
+AUTHENTICATION
 
-json
-Copiar código
-{
-  "productID": 1,
-  "quantity": 5
-}
-Response (JSON):
+The API uses JSON Web Tokens (JWT).
 
-json
-Copiar código
-{
-  "message": "Sale registered successfully",
-  "movement": {
-    "id": 2,
-    "product_id": 1,
-    "type": "salida",
-    "quantity": 5,
-    "stock_before": 300,
-    "stock_after": 295,
-    "date": "2025-12-12T23:30:10.123456"
-  }
-}
-3. Stock Adjustment
-Endpoint: POST /inventory/ajuste
+Authentication flow:
+1. User registers
+2. User logs in
+3. API returns a JWT token
+4. Token is sent in the Authorization header for protected requests
 
-Description: Adjusts the stock of a product to a specific value.
+Authorization header format:
 
-Body (JSON):
+Authorization: Bearer <token>
 
-json
-Copiar código
-{
-  "productID": 1,
-  "new_stock": 500
-}
-Response (JSON):
 
-json
-Copiar código
-{
-  "message": "Stock adjusted successfully",
-  "movement": {
-    "id": 3,
-    "product_id": 1,
-    "type": "ajuste",
-    "quantity": 500,
-    "stock_before": 295,
-    "stock_after": 500,
-    "date": "2025-12-12T23:35:00.654321"
-  }
-}
-4. Inventory Movements (optional filter)
-Endpoint: GET /inventory/movimientos
+ROLES AND PERMISSIONS
 
-Optional query params:
+Available roles:
 
-movement_type → "entrada", "salida" or "ajuste"
+- admin
+  - Can create products
+  - Can modify inventory
+  - Can perform stock adjustments
 
-start_date → ISO datetime
+- user
+  - Can view products
+  - Cannot modify inventory
 
-end_date → ISO datetime
+Access control is enforced at the route level using dependencies.
 
-Description: Returns the list of movements filtered by the parameters.
 
-Response (JSON):
+CORE MODULES
 
-json
-Copiar código
-[
-  {
-    "id": 1,
-    "product_id": 1,
-    "type": "entrada",
-    "quantity": 100,
-    "stock_before": 200,
-    "stock_after": 300,
-    "date": "2025-12-12T23:24:54.025508"
-  },
-  {
-    "id": 2,
-    "product_id": 1,
-    "type": "salida",
-    "quantity": 5,
-    "stock_before": 300,
-    "stock_after": 295,
-    "date": "2025-12-12T23:30:10.123456"
-  }
-]
+
+AUTH MODULE
+
+Responsible for:
+- User registration
+- User login
+- Token generation
+- Password validation
+
+
+PRODUCT MODULE
+
+Responsibilities:
+- Create products (admin only)
+- List products
+- Validate product data
+
+
+INVENTORY MODULE
+
+Responsibilities:
+- Stock entry
+- Stock removal
+- Inventory adjustment
+- Permission validation for inventory operations
+
+
+DATA VALIDATION
+
+All incoming data is validated using schemas.
+Invalid or malformed requests are rejected automatically.
+
+
+ERROR HANDLING
+
+- Unauthorized access returns HTTP 401
+- Forbidden actions return HTTP 403
+- Validation errors return HTTP 422
+
+This ensures consistent API behavior.
+
+
+TESTING STRATEGY
+
+The API is fully testable using pytest.
+Tests verify both business logic and permission rules.
+
+Test database is isolated and recreated for each test run.
+
+
+API STABILITY
+
+This API is considered stable for version 1.0.
+Future versions may extend functionality without breaking existing behavior.
