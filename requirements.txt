@@ -7,3 +7,4 @@ python-jose
 jwt
 pydantic
 pytest
+httpx
