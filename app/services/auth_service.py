@@ -25,8 +25,9 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password_bytes)
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain.encode("utf-8")[:72], hashed)
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    password_bytes = plain_password.encode("utf-8")[:72]
+    return pwd_context.verify(password_bytes, hashed_password)
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
     user = db.query(User).filter(User.username == username).first()
