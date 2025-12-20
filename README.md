@@ -1,74 +1,116 @@
-OPTRYN BACKEND (ERP – FASTAPI)
+# ERP FastAPI – Optryn
 
-Professional backend for inventory management with authentication, role-based access control, and automated testing.
+## 📌 Description
+Backend ERP system developed with FastAPI for managing users, products, and inventory.
+The system includes JWT-based authentication, role-based access control (RBAC), and secure password handling, designed following best practices for scalable backend architectures.
 
+This project is intended as a production-oriented backend, not a demo, and focuses on clean architecture, security, and testability.
 
-OVERVIEW
+## 🧱 Architecture
+The project follows a modular and layered architecture, separating concerns clearly:
 
-Optryn is an ERP-style backend focused on inventory control.
-It is designed following solid software engineering principles to ensure stability,
-security, and maintainability.
+- FastAPI
+- SQLAlchemy
+- JWT
+- Argon2
+- Pytest
+- GitHub Actions (CI)
 
-This project represents a real backend system, not a tutorial or a school exercise.
+Key architectural concepts:
 
+Dependency Injection
 
-KEY FEATURES
+Repository pattern
 
-- JWT-based authentication
-- Role-based access control (admin, user)
-- Inventory management with business rules
-- Clean architecture (routes, services, models, schemas)
-- Automated tests using pytest
-- Isolated test database
+Separation of routers, services, and models
 
+Environment-based configuration
 
-ARCHITECTURE
+## 🚀 Installation
 
-The backend follows a layered architecture:
+1. Clone the repository:
+2. Create and activate a virtual environment:
 
-- Routes handle HTTP requests
-- Services contain business logic
-- Models define database entities
-- Schemas validate and serialize data
+python -m venv venv
+source venv/bin/activate   # Linux / macOS
+venv\Scripts\activate      # Windows
 
-This separation improves maintainability and scalability.
+3. Install dependencies:
+pip install -r requirements.txt
+4. Configure environment variables:
+Create a .env file and define:
 
+DATABASE_URL
 
-TESTING
+SECRET_KEY
 
-The project includes automated tests covering:
+ALGORITHM
 
-- Authentication
-- Authorization and roles
-- Inventory operations
-- Product management
+ACCESS_TOKEN_EXPIRE_MINUTES
 
-Tests run against an isolated SQLite database to avoid affecting real data.
+5. Run the application:
 
-Run tests with:
-
-pytest -v
-
-CONTINUOUS INTEGRATION
-
-This project uses GitHub Actions to automatically run tests on every push and pull request,
-ensuring backend stability and preventing regressions.
+uvicorn app.main:app --reload
 
 
-PROJECT STATUS
+## 🔐 Authentication
 
-Current version: Backend v1.0
+The system uses JWT authentication with the following features:
 
-- Core business logic implemented
-- Authentication and permissions stable
-- Tests passing
-- Ready for CI integration
+Secure login with hashed passwords (Argon2)
 
+Access tokens for authenticated requests
 
-NEXT STEPS
+Role-based authorization (e.g. admin, user)
 
-- Continuous Integration (GitHub Actions)
-- Test coverage reporting
-- Inventory movement history
-- Reporting and filtering
-- Role expansion
+Protected routes using FastAPI dependencies
+
+Token expiration and validation
+
+This approach allows the backend to remain stateless, scalable, and suitable for microservices.
+
+## 📦 Features
+User management (create, update, delete)
+
+Secure authentication and authorization
+
+Role and permission control
+
+Product management
+
+Inventory tracking
+
+Relational database design with foreign keys
+
+Input validation and error handling
+
+Modular and extensible structure
+
+Planned / expandable features:
+
+Sales and order management
+
+Reports and analytics
+
+Supplier management
+
+REST integration with frontend clients
+
+## 🧪 Tests
+
+The project includes automated tests written with Pytest:
+
+Unit tests for core logic
+
+API endpoint testing
+
+Authentication and authorization tests
+
+Database interaction validation
+
+Tests are executed automatically using GitHub Actions on each push and pull request, ensuring code quality and stability.
+
+## 🧑‍💻 Autor
+Axel Guillermo Martinez Martinez
+Full-Stack Developer
+Focused on scalable systems, clean architecture, and secure API design.
