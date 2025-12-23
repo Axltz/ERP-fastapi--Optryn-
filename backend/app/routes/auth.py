@@ -10,20 +10,30 @@ from app.services.auth_service import (
     verify_password,
     create_access_token,
     get_current_user,
-    require_role
+    get_current_user_optional,
 )
 
 router = APIRouter()
 
 
 @router.post("/register", response_model=UserResponse)
-def register_user(data: UserRegister, db: Session = Depends(get_db)):
+def register_user(
+    data: UserRegister,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
+):
     user_exists = db.query(User).filter(User.username == data.username).first()
     if user_exists:
         raise HTTPException(status_code=400, detail="User already exists")
 
     any_user = db.query(User).first()
-    role_to_assign = "admin" if any_user is None else "user"
+
+    if any_user:
+        if not current_user or current_user.role != "admin":
+            raise HTTPException(status_code=403, detail="Admin privileges required")
+        role_to_assign = "user"
+    else:
+        role_to_assign = "admin"
 
     new_user = User(
         username=data.username,
@@ -44,14 +54,10 @@ def login_user(
 ):
     user = db.query(User).filter(User.username == form_data.username).first()
 
-    if not user or not verify_password(
-        form_data.password, user.hashed_password
-    ):
+    if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
-    token = create_access_token(
-        {"sub": user.username, "role": user.role}
-    )
+    token = create_access_token({"sub": user.username, "role": user.role})
 
     return {"access_token": token, "token_type": "bearer"}
 
@@ -84,4 +90,3 @@ def delete_user(
     db.delete(current_user)
     db.commit()
     return {"message": "User deleted successfully"}
-

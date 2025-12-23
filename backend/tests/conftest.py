@@ -1,3 +1,4 @@
+import os
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -7,8 +8,9 @@ from app.main import app
 from app.database import Base, get_db
 from app.models import User, Product
 
-# ---- DB TEST ----
-SQLALCHEMY_DATABASE_URL = "sqlite:///./basetest.db"
+os.makedirs("tests", exist_ok=True)
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///./tests/basetest.db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
@@ -18,7 +20,6 @@ TestingSessionLocal = sessionmaker(
     autocommit=False, autoflush=False, bind=engine
 )
 
-# ---- FIXTURE DB ----
 @pytest.fixture(scope="function")
 def db():
     Base.metadata.drop_all(bind=engine)
@@ -30,7 +31,6 @@ def db():
     finally:
         session.close()
 
-# ---- OVERRIDE DB ----
 @pytest.fixture(scope="function")
 def client(db):
     def override_get_db():
@@ -42,7 +42,6 @@ def client(db):
     app.dependency_overrides[get_db] = override_get_db
     return TestClient(app)
 
-# ---- USERS ----
 @pytest.fixture
 def admin_user(db):
     user = User(username="admin", hashed_password="hashed", role="admin")
@@ -59,7 +58,6 @@ def normal_user(db):
     db.refresh(user)
     return user
 
-# ---- PRODUCT ----
 @pytest.fixture
 def sample_product(db):
     product = Product(

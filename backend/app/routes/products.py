@@ -15,9 +15,11 @@ def create_product_route(data: ProductCreate,
     return create_product(db, data)
 
 @router.get("/", response_model=list[ProductResponse])
-def list_products(db: Session = Depends(get_db),
+def list_products(skip: int = 0,
+                  limit: int = 10,
+                  db: Session = Depends(get_db),
                   current_user: User = Depends(get_current_user)):
-    return get_products(db)
+    return get_products(db, skip=skip, limit=limit)
 
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product_route(product_id: int,
